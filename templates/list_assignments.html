@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}งานมอบหมายใน {{ class_info.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-2">
+            งานมอบหมายในชั้นเรียน: <span class="text-indigo-600">{{ class_info.name }}</span>
+        </h1>
+        <p class="text-gray-500 mb-6">
+            รหัสเข้าร่วมชั้นเรียน: <strong class="text-indigo-500">{{ class_info.join_code }}</strong>
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6 space-y-3">
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-md shadow-md flash-{{ category|default('warning') }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="space-y-6">
+            {% if assignments %}
+                {% for assignment in assignments %}
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hover:border-indigo-300 transition duration-150">
+                        <h2 class="text-xl font-bold text-gray-900 mb-2">{{ assignment.title }}</h2>
+                        <p class="text-gray-600 mb-3">{{ assignment.description | default('ไม่มีคำอธิบายสำหรับงานนี้', true) }}</p>
+
+                        <!-- Assignment Link (แสดงลิงก์ใบงาน/ไฟล์งาน ถ้ามี) -->
+                        {% if assignment.file_link %}
+                            <div class="mb-3">
+                                <span class="text-sm font-semibold text-indigo-700 mr-2">🔗 ใบงาน:</span>
+                                <a href="{{ assignment.file_link }}" target="_blank" rel="noopener noreferrer"
+                                   class="text-sm text-blue-600 hover:text-blue-800 underline transition duration-150 break-words">
+                                    คลิกที่นี่เพื่อดูไฟล์งาน
+                                </a>
+                            </div>
+                        {% endif %}
+
+                        <!-- Due Date and Max Score -->
+                        <div class="flex flex-col sm:flex-row sm:items-center text-sm font-medium text-gray-500 space-y-1 sm:space-y-0 sm:space-x-4 mb-4">
+                            {% if assignment.due_date %}
+                                <span class="text-red-600">
+                                    กำหนดส่ง: {{ assignment.due_date.strftime('%d/%m/%Y เวลา %H:%M') }}
+                                </span>
+                                {% set due_date_ts = assignment.due_date.timestamp() %}
+                                {% set current_ts = datetime.utcnow().timestamp() %}
+                                {% if current_ts > due_date_ts %}
+                                    <span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">เลยกำหนดแล้ว</span>
+                                {% else %}
+                                    <span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">เปิดรับ</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-gray-500">ไม่มีกำหนดส่ง</span>
+                            {% endif %}
+                            <span class="text-gray-500 sm:ml-4">
+                                คะแนนเต็ม: <strong class="text-gray-700">{{ assignment.max_score }}</strong>
+                            </span>
+                        </div>
+                        
+                        <!-- Submission Button -->
+                        <a href="{{ url_for('submission_form', assignment_id=assignment.id) }}"
+                           class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 w-full sm:w-auto">
+                            ส่งงานมอบหมายนี้ &rarr;
+                        </a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center p-10 bg-yellow-50 rounded-xl border border-yellow-200">
+                    <p class="text-xl text-yellow-700 font-medium">
+                        🎉 ยินดีด้วยที่เข้าร่วมชั้นเรียนนี้!
+                    </p>
+                    <p class="text-sm text-yellow-600 mt-2">
+                        แต่ยังไม่มีงานมอบหมายใด ๆ ในชั้นเรียนนี้
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="mt-8 text-center">
+             <a href="{{ url_for('student_landing') }}" class="text-indigo-500 hover:text-indigo-700 transition duration-150 text-sm font-medium">
+                &larr; กลับไปหน้ากรอกรหัสเข้าร่วม
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

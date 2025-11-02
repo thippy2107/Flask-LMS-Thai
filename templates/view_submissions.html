@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}ตรวจงาน: {{ assignment.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+
+        <!-- Header and Assignment Details -->
+        <div class="p-6 bg-indigo-50 rounded-xl shadow-lg border border-indigo-200 mb-8">
+            <p class="text-sm text-gray-600 font-medium">ชั้นเรียน: {{ assignment.class_rel.name }}</p>
+            <h1 class="text-3xl font-extrabold text-indigo-700 mt-1">
+                ตรวจงาน: {{ assignment.title }}
+            </h1>
+            <p class="text-gray-600 mt-2">{{ assignment.description | default('ไม่มีคำอธิบายสำหรับงานนี้', true) }}</p>
+            <div class="mt-4 text-sm font-medium text-gray-500">
+                <span>คะแนนเต็ม: <strong class="text-indigo-600">{{ assignment.max_score }}</strong></span>
+                {% if assignment.due_date %}
+                    <span class="ml-4">กำหนดส่ง: <strong class="text-red-500">{{ assignment.due_date.strftime('%d/%m/%Y เวลา %H:%M') }}</strong></span>
+                {% endif %}
+            </div>
+            
+            <a href="{{ url_for('teacher_dashboard') }}" class="mt-4 inline-flex items-center text-sm text-indigo-500 hover:text-indigo-700 transition duration-150">
+                &larr; กลับไป Dashboard
+            </a>
+        </div>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6">
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-md shadow-md flash-{{ category|default('warning') }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Submissions List -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">
+            รายการงานที่ส่งมา ({{ submissions | length }} ชิ้น)
+        </h2>
+
+        <div class="space-y-4">
+            {% if submissions %}
+                {% for submission in submissions %}
+                    <div class="bg-white p-5 rounded-xl shadow-md border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center">
+                        
+                        <!-- Student and File Info -->
+                        <div class="flex-1 min-w-0 mb-3 md:mb-0">
+                            <p class="text-lg font-bold text-gray-900">{{ submission.student_name }}</p>
+                            <p class="text-sm text-gray-500 mt-1">
+                                ส่งเมื่อ: {{ submission.submitted_at.strftime('%d/%m/%Y %H:%M') }}
+                            </p>
+                            <div class="mt-2 flex items-center space-x-3">
+                                <span class="text-sm text-gray-700">ไฟล์: </span>
+                                <a href="{{ url_for('view_file', filename=submission.filename) }}" target="_blank"
+                                   class="text-sm font-medium text-blue-600 hover:text-blue-800 transition duration-150 truncate max-w-xs md:max-w-md">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6a2 2 0 01.586 1.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 10a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm0-3a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ submission.filename }}
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Grading Form -->
+                        <div class="flex-shrink-0 flex items-center space-x-3 mt-3 md:mt-0">
+                            <form method="POST" action="{{ url_for('grade_submission', submission_id=submission.id) }}" class="flex items-center space-x-2">
+                                <label for="score_{{ submission.id }}" class="text-sm font-medium text-gray-700">คะแนน:</label>
+                                <input type="number" id="score_{{ submission.id }}" name="score" 
+                                       value="{{ submission.score | default('', true) }}"
+                                       min="0" max="{{ assignment.max_score }}"
+                                       required
+                                       class="w-20 px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-base text-center
+                                              focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                                
+                                <span class="text-lg font-semibold text-gray-800">/ {{ assignment.max_score }}</span>
+
+                                <button type="submit"
+                                        class="px-4 py-2 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 
+                                               focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                                    บันทึก
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center p-10 bg-yellow-50 rounded-xl border border-yellow-200">
+                    <p class="text-xl text-yellow-700 font-medium">
+                        😥 ยังไม่มีนักเรียนคนใดส่งงานมอบหมายนี้
+                    </p>
+                    <p class="text-sm text-yellow-600 mt-2">
+                        กรุณารอให้นักเรียนส่งงานก่อนจึงจะสามารถตรวจและให้คะแนนได้
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

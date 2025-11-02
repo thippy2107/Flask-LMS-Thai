@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard ครูผู้สอน{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+
+        <h1 class="text-4xl font-extrabold text-indigo-700 mb-6">
+            👨‍🏫 Dashboard ครูผู้สอน
+        </h1>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-4 mb-8 border-b-2 pb-4">
+            <a href="{{ url_for('manage_classes') }}" 
+               class="flex items-center px-6 py-3 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-blue-600 hover:bg-blue-700 transition duration-150">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+                </svg>
+                จัดการ/เพิ่มชั้นเรียน
+            </a>
+            <a href="{{ url_for('add_assignment') }}" 
+               class="flex items-center px-6 py-3 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-green-600 hover:bg-green-700 transition duration-150">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd" />
+                </svg>
+                เพิ่มงานมอบหมายใหม่
+            </a>
+        </div>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6">
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-md shadow-md flash-{{ category|default('warning') }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Class List and Assignments -->
+        <div class="space-y-10">
+            {% if classes %}
+                {% for class_obj in classes %}
+                    <div class="bg-white p-6 rounded-xl shadow-xl border border-indigo-100">
+                        <!-- Class Header -->
+                        <div class="flex justify-between items-start border-b pb-3 mb-4">
+                            <div>
+                                <h2 class="text-3xl font-bold text-indigo-700">{{ class_obj.name }}</h2>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    รหัสเข้าร่วม: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-800 font-bold">{{ class_obj.join_code }}</span>
+                                </p>
+                            </div>
+                            <a href="{{ url_for('manage_classes') }}" class="text-sm text-indigo-500 hover:text-indigo-700 transition duration-150">
+                                แก้ไขชั้นเรียน &rarr;
+                            </a>
+                        </div>
+                        
+                        <!-- Assignments List -->
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3">
+                            รายการงานมอบหมาย ({{ class_obj.assignments | length }} ชิ้น)
+                        </h3>
+
+                        <div class="space-y-4">
+                            {% if class_obj.assignments %}
+                                {% for assignment in class_obj.assignments %}
+                                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center">
+                                        
+                                        <!-- Assignment Details -->
+                                        <div class="flex-1 min-w-0 mb-3 md:mb-0">
+                                            <p class="text-lg font-bold text-gray-800 truncate">{{ assignment.title }}</p>
+                                            <p class="text-sm text-gray-500 mt-1">
+                                                คะแนนเต็ม: {{ assignment.max_score }}
+                                                {% if assignment.due_date %}
+                                                    | ส่งภายใน: <span class="font-medium text-red-600">{{ assignment.due_date.strftime('%d/%m/%Y %H:%M') }}</span>
+                                                {% endif %}
+                                            </p>
+                                            <p class="text-sm text-gray-500 mt-1">
+                                                งานที่ส่งมาแล้ว: <span class="font-bold text-green-600">{{ assignment.submissions | length }}</span> ชิ้น
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Actions -->
+                                        <div class="flex space-x-3 flex-shrink-0">
+                                            <!-- View Submissions Button -->
+                                            <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}"
+                                               class="px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition duration-150 flex items-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                  <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                                </svg>
+                                                ดูงานที่ส่ง
+                                            </a>
+
+                                            <!-- Delete Assignment Button -->
+                                            <form method="POST" action="{{ url_for('delete_assignment', assignment_id=assignment.id) }}"
+                                                  onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบงานมอบหมายนี้? ข้อมูลงานที่ส่งมาจะถูกลบทั้งหมด');">
+                                                <button type="submit"
+                                                        class="px-3 py-2 border border-red-300 rounded-lg shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 transition duration-150 flex items-center">
+                                                    🗑️ ลบ
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center p-5 bg-yellow-50 rounded-lg border border-yellow-200">
+                                    <p class="text-yellow-700">ยังไม่มีงานมอบหมายในชั้นเรียนนี้</p>
+                                    <a href="{{ url_for('add_assignment') }}" class="text-sm text-indigo-600 hover:underline mt-1 block">
+                                        คลิกเพื่อเพิ่มงานมอบหมาย
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <!-- No Classes Found -->
+                <div class="text-center p-16 bg-gray-50 rounded-xl border border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-700">คุณยังไม่มีชั้นเรียนที่สร้างไว้</h3>
+                    <p class="text-gray-500 mt-3">กรุณาคลิกที่ปุ่ม "จัดการ/เพิ่มชั้นเรียน" เพื่อเริ่มต้นใช้งาน</p>
+                    <a href="{{ url_for('manage_classes') }}" 
+                       class="mt-6 inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-blue-600 hover:bg-blue-700 transition duration-150">
+                        สร้างชั้นเรียนแรก
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

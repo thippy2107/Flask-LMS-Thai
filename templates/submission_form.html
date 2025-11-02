@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}ส่งงาน: {{ assignment.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 md:p-8">
+    <div class="max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-2xl border border-gray-200 mt-6">
+        
+        <!-- Assignment Header -->
+        <div class="text-center mb-8 p-5 bg-indigo-50 rounded-lg border border-indigo-200">
+            <p class="text-sm text-gray-500 font-medium uppercase">ชั้นเรียน: {{ class_info.name }}</p>
+            <h1 class="text-3xl font-extrabold text-indigo-700 mt-1">{{ assignment.title }}</h1>
+            <p class="text-gray-600 mt-3">{{ assignment.description | default('ไม่มีคำอธิบาย', true) }}</p>
+            <div class="mt-4 text-sm text-gray-500">
+                <span>คะแนนเต็ม: <strong class="text-indigo-600">{{ assignment.max_score }}</strong></span>
+                {% if assignment.due_date %}
+                    <span class="ml-4">กำหนดส่ง: <strong class="text-red-500">{{ assignment.due_date.strftime('%d/%m/%Y เวลา %H:%M') }}</strong></span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Submission Form -->
+        <form method="POST" action="{{ url_for('submit_submission', assignment_id=assignment.id) }}" enctype="multipart/form-data" class="space-y-6">
+            
+            <!-- Student Name Input -->
+            <div>
+                <label for="student_name" class="block text-sm font-medium text-gray-700 mb-1">
+                    ชื่อนักเรียน - นามสกุล <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="student_name" name="student_name" required
+                       class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-base"
+                       placeholder="กรุณากรอกชื่อ-นามสกุลจริง">
+            </div>
+
+            <!-- File Upload Input -->
+            <div>
+                <label for="file" class="block text-sm font-medium text-gray-700 mb-1">
+                    เลือกไฟล์งานที่ต้องการส่ง <span class="text-red-500">*</span>
+                </label>
+                <input type="file" id="file" name="file" required
+                       class="mt-1 block w-full text-base text-gray-700 file:mr-4 file:py-2 file:px-4
+                              file:rounded-full file:border-0 file:text-sm file:font-semibold
+                              file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100
+                              border border-gray-300 rounded-lg p-2">
+                <p class="mt-1 text-xs text-gray-500">รองรับไฟล์ PDF, DOCX, JPG, PNG หรือ ZIP</p>
+            </div>
+            
+            <!-- Submit Button -->
+            <button type="submit" 
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-medium text-white bg-green-600 hover:bg-green-700 
+                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                ส่งงาน
+            </button>
+        </form>
+
+        <!-- Back Button -->
+        <div class="mt-8 pt-4 border-t border-gray-100 text-center">
+            <a href="{{ url_for('student_view_assignments', join_code=class_info.join_code) }}" 
+               class="text-sm text-indigo-600 hover:text-indigo-800 transition duration-150">
+                &larr; กลับไปหน้ารายการงานมอบหมาย
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
